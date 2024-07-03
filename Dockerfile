@@ -9,6 +9,8 @@ LABEL Maintainer="Sean Jungbluth, jungbluth.sean@gmail.com" Version=1.0
 
 RUN apt-get -y -m update && apt-get install -y git libcurl4-openssl-dev libxml2-dev libssl-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev libgit2-dev libpng-dev libtiff5-dev libjpeg-dev libmagick++-dev subversion pandoc
 
+RUN apt-get install time
+
 ENV CONDA_DIR /opt/conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -b -p /opt/conda
@@ -25,12 +27,12 @@ RUN echo "install.packages(\"plotrix\", dependencies=TRUE, repos=\"https://cran.
 
 RUN echo "remotes::install_github(\"cpauvert/psadd\")" | R --no-save
 
-RUN echo "devtools::install_github(\"CalCOFI/rCRUX\", build_vignettes = TRUE)" | R --no-save
+RUN echo "devtools::install_github(\"McAllister-NOAA/rCRUX\", build_vignettes = TRUE)" | R --no-save
 
-RUN wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.14.1+-x64-linux.tar.gz && \
-    tar -xvzf ncbi-blast-2.14.1+-x64-linux.tar.gz && \
-    rm ncbi-blast-2.14.1+-x64-linux.tar.gz
+RUN wget https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.15.0+-x64-linux.tar.gz && \
+    tar -xvzf ncbi-blast-2.15.0+-x64-linux.tar.gz && \
+    rm ncbi-blast-2.15.0+-x64-linux.tar.gz
 
-ENV PATH=/ncbi-blast-2.14.1+/bin:$PATH
+ENV PATH=/ncbi-blast-2.15.0+/bin:$PATH
 
 WORKDIR "/mnt"
