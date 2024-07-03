@@ -174,6 +174,9 @@ blast_datatable <- function(blast_seeds, save_dir, blast_db_path, accession_taxa
     # indicies list as "done"
     blast_seeds_m$blast_status[-unsampled_indices] <- "done"
 
+    sample_indices <- c()
+    rank_number <- 0
+
     # Collect indices to blast
     # TODO unclear this part
     # if unsampled indices are greater than the max to blast (default n = 1000),
@@ -205,7 +208,6 @@ blast_datatable <- function(blast_seeds, save_dir, blast_db_path, accession_taxa
      rank_number <- length(seeds_by_rank_indices)
 
 
-
      if (rank_number < max_to_blast & nrow(blast_seeds_m) > max_to_blast){
 
         remainder = max_to_blast - rank_number - 1
@@ -216,10 +218,13 @@ blast_datatable <- function(blast_seeds, save_dir, blast_db_path, accession_taxa
           dplyr::filter(!.data$accession %in%  seeds_by_rank_indices) %>%
           dplyr::slice_sample(n = remainder) %>%
           dplyr::pull(.data$accession)
+    
+        seeds_to_blast <- c(seeds_by_rank_indices, filler)
 
         }
-
-        seeds_to_blast <- c(seeds_by_rank_indices,filler)
+    else {
+        seeds_to_blast <- seeds_by_rank_indices
+        }
 
         sample_indices <- which(blast_seeds_m$accession %in% seeds_to_blast)
 
@@ -322,77 +327,29 @@ blast_datatable <- function(blast_seeds, save_dir, blast_db_path, accession_taxa
       # else;  sample_indices_in <- head(sample_indices, max_to_blast)
       #
       # How to update sample indices?
-
-      if (length(sample_indices) == length(unsampled_indices)) {
-
-        message('tmp - length(sample_indices) == length(unsampled_indices)\n')
-
-        run_blastdbcmd_blastn_and_aggregate_resuts(sample_indices = unsampled_indices,
-                                                   save_dir = save_dir,
-                                                   blast_seeds_m = blast_seeds_m,
-                                                   ncbi_bin = ncbi_bin,
-                                                   db = blast_db_path,
-                                                   too_many_ns = too_many_ns,
-                                                   blastdbcmd_failed = blastdbcmd_failed,
-                                                   unsampled_indices = unsampled_indices,
-                                                   output_table = output_table,
-                                                   wildcards = wildcards,
-                                                   num_rounds = num_rounds,
-                                                   ...)
-
-        unsampled_indices <- unsampled_indices[!(unsampled_indices)]
-        blast_seeds_m$blast_status[-unsampled_indices] <- "done"
-
-        break
-
-      } else if (length(sample_indices) <= max_to_blast) {
-
-        message('tmp - length(sample_indices) <= max_to_blast\n')
-
-        run_blastdbcmd_blastn_and_aggregate_resuts(sample_indices = sample_indices,
-                                                   save_dir = save_dir,
-                                                   blast_seeds_m = blast_seeds_m,
-                                                   ncbi_bin = ncbi_bin,
-                                                   db = blast_db_path,
-                                                   too_many_ns = too_many_ns,
-                                                   blastdbcmd_failed = blastdbcmd_failed,
-                                                   unsampled_indices = unsampled_indices,
-                                                   output_table = output_table,
-                                                   wildcards = wildcards,
-                                                   num_rounds = num_rounds,
-                                                   ...)
-
-        sample_indices <- sample_indices[!(sample_indices)]
-        blast_seeds_m$blast_status[-sample_indices] <- "done"
-
-
-        break
-
-      } else {
-
-        message('tmp - Subsetting sample_indices\n')
-
-        # take chunks of the sample indices that are equivalent to max_to_blast
-        subset <- utils::head(sample_indices, max_to_blast)
-
-        run_blastdbcmd_blastn_and_aggregate_resuts(sample_indices = subset,
-                                                   save_dir = save_dir,
-                                                   blast_seeds_m = blast_seeds_m,
-                                                   ncbi_bin = ncbi_bin,
-                                                   db = blast_db_path,
-                                                   too_many_ns = too_many_ns,
-                                                   blastdbcmd_failed = blastdbcmd_failed,
-                                                   unsampled_indices = unsampled_indices,
-                                                   output_table = output_table,
-                                                   wildcards = wildcards,
-                                                   num_rounds = num_rounds,
-                                                   ...)
-
-        # update sample indices
-        sample_indices <- sample_indices[!(sample_indices %in% subset)]
-        blast_seeds_m$blast_status[-sample_indices] <- "done"
-
-      }
+      if (length(sample_indices) <= max_to_blast) {
+            message("tmp - length(sample_indices) <= max_to_blast\n")
+            run_blastdbcmd_blastn_and_aggregate_resuts(sample_indices = sample_indices,
+                save_dir = save_dir, blast_seeds_m = blast_seeds_m,
+                ncbi_bin = ncbi_bin, db = blast_db_path, too_many_ns = too_many_ns,
+                blastdbcmd_failed = blastdbcmd_failed, unsampled_indices = unsampled_indices,
+                output_table = output_table, wildcards = wildcards,
+                num_rounds = num_rounds, ...)
+            sample_indices <- sample_indices[!(sample_indices)]
+            blast_seeds_m$blast_status[-sample_indices] <- "done"
+            break
+        } else {
+            message("tmp - Subsetting sample_indices\n")
+            subset <- utils::head(sample_indices, max_to_blast)
+            run_blastdbcmd_blastn_and_aggregate_resuts(sample_indices = subset,
+                save_dir = save_dir, blast_seeds_m = blast_seeds_m,
+                ncbi_bin = ncbi_bin, db = blast_db_path, too_many_ns = too_many_ns,
+                blastdbcmd_failed = blastdbcmd_failed, unsampled_indices = unsampled_indices,
+                output_table = output_table, wildcards = wildcards,
+                num_rounds = num_rounds, ...)
+            sample_indices <- sample_indices[!(sample_indices %in% subset)]
+            blast_seeds_m$blast_status[-sample_indices] <- "done"
+        }
 
     }
 
