@@ -76,7 +76,7 @@ run_blastn <- function(fasta, db, temp_fasta_path = NULL, ncbi_bin = NULL,
                                       "pident", "qacc", "slen", "sstart",
                                       "send", "sseq", "evalue", "staxids\""),
                      "-evalue", evalue,
-                     "-num_alignments", align,
+                     "-max_target_seqs", align,
                      "-qcov_hsp_perc", coverage,
                      "-perc_identity", perID,
                      "-num_threads ", cores
